@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods
 
 from .forms import PostForm, CommentForm
-from .models import Group, Post, User, Comment
+from .models import Group, Post, User, Comment, Follow
 
 
 @require_http_methods(["GET"])
@@ -109,3 +109,30 @@ def add_comment(request, post_id):
         comment.post = post
         comment.save()
     return redirect('posts:post_detail', post_id=post_id)
+
+
+@login_required
+def follow_index(request):
+    follower_user = request.user
+    if not Follow.objects.filter(user=follower_user).exists():
+        return render(request, 'posts/follow.html')
+    user_following_authors = Follow.objects.filter(
+        user=follower_user).values('author')
+    posts = Post.objects.filter(author__in=user_following_authors)
+    page_obj = Paginator(request, posts)
+    context = {
+        'page_obj': page_obj
+    }
+    return render(request, 'posts/follow.html', context)
+
+
+@login_required
+def profile_follow(request, username):
+    # Подписаться на автора
+    ...
+
+
+@login_required
+def profile_unfollow(request, username):
+    # Дизлайк, отписка
+    ...
