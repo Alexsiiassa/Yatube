@@ -2,6 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods
+from django.http import HttpResponseRedirect
 
 from .forms import PostForm, CommentForm
 from .models import Group, Post, User, Comment, Follow
@@ -113,26 +114,31 @@ def add_comment(request, post_id):
 
 @login_required
 def follow_index(request):
-    follower_user = request.user
-    if not Follow.objects.filter(user=follower_user).exists():
-        return render(request, 'posts/follow.html')
-    user_following_authors = Follow.objects.filter(
-        user=follower_user).values('author')
-    posts = Post.objects.filter(author__in=user_following_authors)
-    page_obj = Paginator(request, posts)
+    posts = Post.objects.filter(author__following__user=request.user)
+    paginator = Paginator(posts, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
     context = {
-        'page_obj': page_obj
+        'page_obj': page_obj,
     }
     return render(request, 'posts/follow.html', context)
 
 
 @login_required
 def profile_follow(request, username):
-    # Подписаться на автора
-    ...
+    author = User.objects.get(username=username)
+    user = request.user
+    if author != user:
+        Follow.objects.get_or_create(user=user, author=author)
+        return redirect(
+            'posts:profile',
+            username=username
+        )
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
 
 @login_required
 def profile_unfollow(request, username):
-    # Дизлайк, отписка
-    ...
+    user = request.user
+    Follow.objects.get(user=user, author__username=username).delete()
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER'))

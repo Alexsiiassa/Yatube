@@ -1,14 +1,13 @@
 import shutil
 import tempfile
 
-from django.contrib.auth import get_user_model
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from posts.models import Group, Post
-
 
 User = get_user_model()
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
@@ -19,15 +18,15 @@ class PostFormTests(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.user = User.objects.create_user(username='User1')
-        cls.user_2 = User.objects.create_user(username='User2')
+        cls.user = User.objects.create_user(username='somobody')
+        cls.user_2 = User.objects.create_user(username='somebody_2')
         cls.group = Group.objects.create(
-            title='Тестовое название группы',
-            slug='test-group',
-            description='Тестовое описание группы'
+            title='test-group',
+            slug='test-slug',
+            description='description'
         )
         cls.post = Post.objects.create(
-            text='Тестовый текст поста',
+            text='test-text',
             author=cls.user,
             group=cls.group
         )
@@ -93,8 +92,6 @@ class PostFormTests(TestCase):
             reverse('posts:index'),
             reverse('posts:group_list', kwargs={'slug': self.group.slug}),
             reverse('posts:profile', kwargs={'username': self.user}),
-            # reverse('posts:post_detail', kwargs={
-            #        'post_id': f'{int(self.post.id)}'})
         ]
         for reverse_name in templates_page:
             with self.subTest(reverse_name=reverse_name):
@@ -109,14 +106,3 @@ class PostFormTests(TestCase):
                 group=form_data['group']
             ).exists()
         )
-
-#    def test_context_post_detail(self):
-#        """Проверяем контекст post:detail"""
-#        url = reverse('posts:post_detail', kwargs={'post_id': all_pages})
-#        response = self.authorized_client.get(url)
-#        self.assertEqual(response.status_code, HTTPStatus.OK)
-#        self.assertEqual(response.context['post'], self.post)
-#        self.assertEqual(response.context['post_count'], all_pages)
-#        self.assertEqual(
-#            self.post.image.name, 'posts/' + uploaded.name
-#        )
