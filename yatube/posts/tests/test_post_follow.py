@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
@@ -79,47 +78,3 @@ class TestFinal(TestCase):
         self.client.login(username='somebody_2', password='pass')
         response = self.response_get('posts:follow_index')
         self.assertNotIn(post, response.context['page_obj'].object_list)
-
-    def test_auth_comments(self):
-        """ Только авторизованный пользователь может комментировать посты.
-        """
-        post = Post.objects.create(author=self.user, text=self.text)
-        comment = 'comment text'
-        self.response_post(
-            'posts:add_comment',
-            rev_args={
-                'username': self.user.username,
-                'post_id': post.id
-            },
-            post_args={'text': comment}
-        )
-        response = self.response_get(
-            'post',
-            rev_args={
-                'username': self.user.username,
-                'post_id': post.id
-            }
-        )
-        self.assertContains(response, comment)
-
-        self.client.logout()
-        response = self.response_post(
-            'posts:add_comment',
-            rev_args={
-                'username': self.user.username,
-                'post_id': post.id
-            },
-            post_args={'text': comment}
-        )
-        reverse_string = reverse(
-            'posts:add_comment',
-            kwargs={
-                'post_id': post.id,
-                'username': self.user.username
-            }
-        )
-        redirect_string = f"{settings.LOGIN_URL}?next={reverse_string}"
-        self.assertRedirects(
-            response,
-            redirect_string
-        )
