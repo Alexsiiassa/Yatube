@@ -6,7 +6,7 @@
   <!-- класс py-5 создаёт отступы сверху и снизу блоков -->
   <div class="container py-5">
     <title>{% block title %}Последние обновления на сайте{% endblock title %}</title>
-    {% cache 20 index_page %}
+    {% cache 20 index_page page_obj.number %}
     {% for posts in page_obj %}
     <ul>
       <li>

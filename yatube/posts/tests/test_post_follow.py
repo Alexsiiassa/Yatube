@@ -37,9 +37,8 @@ class TestFinal(TestCase):
             follow=fol
         )
 
-    def test_auth_follow(self):
-        """ Авторизованный пользователь подписывается на других
-            и удалять их из подписок.
+    def test_auth_follow_add(self):
+        """ Авторизованный пользователь подписывается на других.
         """
         following = User.objects.create(username='following')
         self.response_post(
@@ -51,6 +50,10 @@ class TestFinal(TestCase):
             True
         )
 
+    def test_auth_follow_dell(self):
+        """ Авторизованный пользователь удаляет из подписок.
+        """
+        following = User.objects.create(username='following')
         self.response_post(
             'posts:profile_unfollow',
             rev_args={'username': following}
@@ -61,8 +64,7 @@ class TestFinal(TestCase):
         )
 
     def test_new_post(self):
-        """ Новая запись появляется в ленте тех, кто подписан
-        и не появляется в ленте, кто не подписан.
+        """ Новая запись появляется в ленте тех, кто подписан.
         """
         following = User.objects.create(username='following')
         Follow.objects.create(user=self.user, author=following)
@@ -70,6 +72,11 @@ class TestFinal(TestCase):
         response = self.response_get('posts:follow_index')
         self.assertIn(post, response.context['page_obj'].object_list)
 
+    def test_new_post_invisible(self):
+        """ Новая запись не появляется в ленте, кто не подписан.
+        """
+        following = User.objects.create(username='following')
+        post = Post.objects.create(author=following, text=self.text)
         self.client.logout()
         User.objects.create_user(
             username='somebody_2',

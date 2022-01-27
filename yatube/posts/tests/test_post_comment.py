@@ -29,7 +29,6 @@ class CommentFormTests(TestCase):
         )
 
     def setUp(self):
-        self.guest_client = Client()
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
 

@@ -5,7 +5,7 @@ from django.views.decorators.http import require_http_methods
 from django.http import HttpResponseRedirect
 
 from .forms import PostForm, CommentForm
-from .models import Group, Post, User, Comment, Follow
+from .models import Group, Post, User, Follow
 
 
 @require_http_methods(["GET"])
@@ -53,7 +53,7 @@ def post_detail(request, post_id):
     post = get_object_or_404(Post, id=post_id)
     posts_count = Post.objects.filter(author=post.author).count()
     form = CommentForm()
-    comments = Comment.objects.filter()
+    comments = post.comments.all()
     context = {
         'post': post,
         'posts_count': posts_count,
@@ -66,7 +66,7 @@ def post_detail(request, post_id):
 @login_required
 @require_http_methods(["GET", "POST"])
 def post_create(request):
-    form = PostForm(request.POST or None)
+    form = PostForm(request.POST or None, files=request.FILES or None)
     if form.is_valid():
         post = form.save(commit=False)
         post.author = request.user
@@ -126,7 +126,8 @@ def follow_index(request):
 
 @login_required
 def profile_follow(request, username):
-    author = User.objects.get(username=username)
+    author = get_object_or_404(User, username=username)
+#   author = User.objects.get(username=username)
     user = request.user
     if author != user:
         Follow.objects.get_or_create(user=user, author=author)
@@ -140,5 +141,5 @@ def profile_follow(request, username):
 @login_required
 def profile_unfollow(request, username):
     user = request.user
-    Follow.objects.get(user=user, author__username=username).delete()
+    Follow.objects.filter(user=user, author__username=username).delete()
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))

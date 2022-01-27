@@ -27,9 +27,6 @@ class Post(models.Model):
         related_name='group_posts'
     )
 
-    def __str__(self) -> str:
-        return self.text
-
     group = models.ForeignKey(
         Group,
         blank=True,
@@ -48,6 +45,9 @@ class Post(models.Model):
     class Meta:
         verbose_name = 'Пост'
         ordering = ['-pub_date', '-pk']
+
+    def __str__(self) -> str:
+        return self.text
 
 
 class Comment(models.Model):
@@ -75,6 +75,7 @@ class Comment(models.Model):
 
 
 class Follow(models.Model):
+    unique_together = [['user', 'author']]
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,

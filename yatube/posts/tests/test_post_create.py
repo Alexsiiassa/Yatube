@@ -72,12 +72,6 @@ class PostFormTests(TestCase):
             'group': self.group.id,
             'image': uploaded
         }
-        # попытка создания поста анонимом
-        self.client.post(
-            reverse('posts:post_create'),
-            data=form_data,
-            follow=True
-        )
         self.assertEqual(Post.objects.count(), post_count)
         response = self.authorized_client.post(
             reverse('posts:post_create'),
